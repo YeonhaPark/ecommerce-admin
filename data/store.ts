@@ -46,3 +46,18 @@ export const getStoreByUserIdAndStoreId = async (
     return null; // 에러 발생 시 null 반환
   }
 };
+
+export const getAllStoresByUserId = async (userId: string) => {
+  try {
+    const stores = await db.store.findMany({
+      where: {
+        userId,
+      },
+    });
+
+    return stores; // 빈 배열이면 store가 없거나 권한이 없음
+  } catch (error) {
+    console.error("Error fetching stores:", error);
+    return []; // 에러 발생 시 빈 배열 반환
+  }
+};
