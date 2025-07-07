@@ -11,9 +11,16 @@ export type State = {
   success?: boolean;
   message?: string;
   errors?: z.ZodIssue[];
+  store?: {
+    id: string;
+    name: string;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 } | null;
 
-export async function createStore(
+export async function storeAction(
   _: State,
   formData: FormData
 ): Promise<State> {
@@ -36,14 +43,14 @@ export async function createStore(
       return { success: false, message: "Unauthorized" };
     }
 
-    await db.store.create({
+    const store = await db.store.create({
       data: {
         name: values.name as string,
         userId,
       },
     });
 
-    return { success: true, message: "Store created successfully!" };
+    return { success: true, store, message: "Store created successfully!" };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, startTransition } from "react";
 import { useStoreModal } from "@/hooks/use-store-modal";
 import { toast } from "sonner";
+const { useRouter } = require("next/navigation");
 import { Modal } from "@/components/ui/modal";
 import {
   Form,
@@ -18,12 +19,13 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { StoreSchema } from "@/schemas";
-import { createStore } from "@/actions/store";
+import { storeAction } from "@/actions/store";
 import * as z from "zod";
 
 export const StoreModal = () => {
   const { onClose, isOpen } = useStoreModal();
-  const [state, formAction, isPending] = useActionState(createStore, {
+  const router = useRouter();
+  const [state, formAction, isPending] = useActionState(storeAction, {
     success: false,
     message: undefined,
     errors: [],
@@ -44,15 +46,14 @@ export const StoreModal = () => {
         });
       })(evt);
     } catch (error) {
-      console.error("Error submitting form:", error);
       toast.error("Failed to create store. Please try again.");
     }
   };
 
   useEffect(() => {
     if (state?.success) {
-      form.reset();
       onClose();
+      router.push(`/${state?.store?.id}`); // Redirect to the root or dashboard page
       toast.success(state.message || "Store created successfully!");
     }
   }, [state?.success, onClose, form]);

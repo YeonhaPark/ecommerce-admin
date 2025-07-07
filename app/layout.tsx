@@ -3,9 +3,7 @@ import {
   ClerkProvider,
   SignInButton,
   SignUpButton,
-  SignedIn,
   SignedOut,
-  UserButton,
 } from "@clerk/nextjs";
 
 import { ConsolePatchProvider } from "@/components/console-patch-provider";
@@ -42,7 +40,7 @@ export default function RootLayout({
         >
           <ConsolePatchProvider>
             <StoreModal />
-            <header className="flex justify-end items-center p-4 gap-4 h-16">
+            {/* <header className="flex justify-end items-center p-4 gap-4 h-16">
               <SignedOut>
                 <SignInButton />
                 <SignUpButton>
@@ -51,10 +49,7 @@ export default function RootLayout({
                   </button>
                 </SignUpButton>
               </SignedOut>
-              <SignedIn>
-                <UserButton />
-              </SignedIn>
-            </header>
+            </header> */}
           </ConsolePatchProvider>
           {children}
           <Toaster />
