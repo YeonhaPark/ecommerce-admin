@@ -1,8 +1,9 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
 import { StoreSchema } from "@/schemas";
+import { auth } from "@clerk/nextjs/server";
+import { db } from "@/lib/db";
 
 export type FormValues = z.infer<typeof StoreSchema>;
 
@@ -13,32 +14,34 @@ export type State = {
 } | null;
 
 export async function createStore(
-  prevState: State,
+  _: State,
   formData: FormData
 ): Promise<State> {
   try {
-    // FormData에서 값 추출
-    const rawData = {
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
+    const values = {
+      name: formData.get("name"),
     };
 
-    console.log({ rawData });
+    const parsed = StoreSchema.safeParse(values);
+    if (!parsed.success) {
+      return {
+        success: false,
+        errors: parsed.error.errors,
+        message: "Validation failed",
+      };
+    }
 
-    // 스키마 검증
-    const validatedData = StoreSchema.parse(rawData);
+    const { userId } = await auth();
+    if (!userId) {
+      return { success: false, message: "Unauthorized" };
+    }
 
-    // 여기서 실제 데이터베이스 저장 로직을 구현
-    // 예시: await db.store.create({ data: validatedData });
-
-    console.log("Creating store:", validatedData);
-
-    // TODO: 실제 데이터베이스에 저장하는 로직 추가
-    // 임시로 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // 관련 페이지 재검증
-    revalidatePath("/");
+    await db.store.create({
+      data: {
+        name: values.name as string,
+        userId,
+      },
+    });
 
     return { success: true, message: "Store created successfully!" };
   } catch (error) {

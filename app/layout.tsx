@@ -7,9 +7,11 @@ import {
   SignedOut,
   UserButton,
 } from "@clerk/nextjs";
+
 import { ConsolePatchProvider } from "@/components/console-patch-provider";
 import { Geist, Geist_Mono } from "next/font/google";
 import { StoreModal } from "@/components/modals/store-modal";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,6 +57,7 @@ export default function RootLayout({
             </header>
           </ConsolePatchProvider>
           {children}
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

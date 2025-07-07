@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, startTransition } from "react";
 import { useStoreModal } from "@/hooks/use-store-modal";
-
+import { toast } from "sonner";
 import { Modal } from "@/components/ui/modal";
 import {
   Form,
@@ -23,7 +23,11 @@ import * as z from "zod";
 
 export const StoreModal = () => {
   const { onClose, isOpen } = useStoreModal();
-  const [state, formAction, isPending] = useActionState(createStore, null);
+  const [state, formAction, isPending] = useActionState(createStore, {
+    success: false,
+    message: undefined,
+    errors: [],
+  });
 
   const form = useForm<z.infer<typeof StoreSchema>>({
     resolver: zodResolver(StoreSchema),
@@ -31,20 +35,25 @@ export const StoreModal = () => {
   });
 
   const onSubmit = (evt: React.FormEvent<HTMLFormElement>) => {
-    evt.preventDefault();
-    const formElement = evt.currentTarget as HTMLFormElement;
-    form.handleSubmit(() => {
-      startTransition(() => {
-        console.log({ evt });
-        formAction(new FormData(formElement));
-      });
-    })(evt);
+    try {
+      evt.preventDefault();
+      const formElement = evt.currentTarget as HTMLFormElement;
+      form.handleSubmit(() => {
+        startTransition(() => {
+          formAction(new FormData(formElement));
+        });
+      })(evt);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Failed to create store. Please try again.");
+    }
   };
 
   useEffect(() => {
     if (state?.success) {
-      onClose();
       form.reset();
+      onClose();
+      toast.success(state.message || "Store created successfully!");
     }
   }, [state?.success, onClose, form]);
 
@@ -65,7 +74,11 @@ export const StoreModal = () => {
                 <FormItem>
                   <FormLabel htmlFor="name">Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="E-Commerce" {...field} />
+                    <Input
+                      disabled={isPending}
+                      placeholder="E-Commerce"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -73,33 +86,13 @@ export const StoreModal = () => {
             }}
           />
           <div className="pt-6 space-x-2 flex items-center justify-end w-full">
-            <Button variant="outline" onClick={onClose}>
+            <Button disabled={isPending} variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">Continue</Button>
+            <Button disabled={isPending} type="submit">
+              Continue
+            </Button>
           </div>
-          <FormItem>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              disabled={isPending}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50"
-            />
-          </FormItem>
-
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isPending ? "Creating Store..." : "Create Store"}
-          </button>
         </form>
       </Form>
     </Modal>
